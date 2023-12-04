@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import ESTADO from '../recursos/estado';
-import { buscarMsgs } from './msgSlice'; // Importe a action assíncrona correspondente
+import { buscarMsgs } from './mensagemReducer'; // Importe a action assíncrona correspondente
 const urlBase = 'https://backend-bcc-2-b.vercel.app/usuario';
 export const buscarUsuarios = createAsyncThunk('usuario/buscarUsuarios', async (_, { dispatch }) => {
     try {
@@ -181,7 +181,7 @@ const usuarioSlice = createSlice({
                 if (action.payload.status) {
                     state.estado = ESTADO.OCIOSO;
                     state.mensagem = action.payload.mensagem;
-                    state.usuarioss = action.payload.usuarios;
+                    state.usuarios = action.payload.usuarios; 
                 } else {
                     state.estado = ESTADO.ERRO;
                     state.mensagem = action.payload.mensagem;
@@ -193,7 +193,7 @@ const usuarioSlice = createSlice({
             })
             .addCase(adicionarUsuario.fulfilled, (state, action) => {
                 state.estado = ESTADO.OCIOSO;
-                state.usuarioss.push(action.payload.usuario);
+                state.usuarios.push(action.payload.usuario);
                 state.mensagem = action.payload.mensagem;
             })
             .addCase(adicionarUsuario.pending, (state, action) => {
@@ -206,10 +206,9 @@ const usuarioSlice = createSlice({
             })
             .addCase(atualizarUsuario.fulfilled, (state, action) => {
                 state.estado = ESTADO.OCIOSO;
-                const indice = state.usuarioss.findIndex(usuario => usuario.codigo === action.payload.usuario.codigo);
-                state.usuarioss[indice] = action.payload.usuario;
+                const indice = state.usuarios.findIndex(usuario => usuario.codigo === action.payload.usuario.codigo);
+                state.usuarios[indice] = action.payload.usuario;
                 state.mensagem = action.payload.mensagem;
-
             })
             .addCase(atualizarUsuario.pending, (state, action) => {
                 state.estado = ESTADO.PENDENTE;
@@ -222,7 +221,7 @@ const usuarioSlice = createSlice({
             .addCase(removerUsuario.fulfilled, (state, action) => {
                 state.estado = ESTADO.OCIOSO;
                 state.mensagem = action.payload.mensagem;
-                state.usuarioss = state.usuarioss.filter(usuario => usuario.codigo !== action.payload.usuario.codigo);
+                state.usuarios = state.usuarios.filter(usuario => usuario.codigo !== action.payload.usuario.codigo);
             })
             .addCase(removerUsuario.pending, (state, action) => {
                 state.estado = ESTADO.PENDENTE;

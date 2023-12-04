@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import ESTADO from "../recursos/estado";
 
-const urlBase = "https://backend-bcc-2-b.vercel.app/msg";
+const urlBase = "https://backend-bcc-2-b.vercel.app/mensagem";
 
 export const buscarMsgs = createAsyncThunk('buscarMsg', async () => {
     try {
@@ -97,7 +97,7 @@ export const atualizarMsg = createAsyncThunk('atualizarMsg', async ({ id, lida }
             return {
                 status: dados.status,
                 mensagem: dados.mensagem,
-                msg: { id, lida }
+                msg: { id, lida:true }
             };
         } else {
             return {
@@ -114,36 +114,60 @@ export const atualizarMsg = createAsyncThunk('atualizarMsg', async ({ id, lida }
 });
 
 export const excluirMsg = createAsyncThunk('excluirMsg', async (id) => {
-    try {
-        const resposta = await fetch(urlBase, {
-            method: "DELETE",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                id
-            })
-        });
+
+    const obterMensagemPorId = async (id) => {
+        const resposta = await fetch(`${urlBase}/${id}`, { method: "GET" });
         const dados = await resposta.json();
+      
         if (dados.status) {
-            return {
-                status: dados.status,
-                mensagem: dados.mensagem,
-                msg: { id }
-            };
+          return dados.mensagem;
         } else {
-            return {
-                status: dados.status,
-                mensagem: dados.mensagem
-            };
+          throw new Error(dados.mensagem);
         }
-    } catch (erro) {
+      };
+      
+    try {
+      const mensagem = await obterMensagemPorId(id);
+      const tempoDecorrido = Date.now() - new Date(mensagem.dataHora).getTime();
+  
+      if (tempoDecorrido <= 5 * 60 * 1000) {
+        const resposta = await fetch(urlBase, {
+          method: "DELETE",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id
+          })
+        });
+  
+        const dados = await resposta.json();
+  
+        if (dados.status) {
+          return {
+            status: dados.status,
+            mensagem: dados.mensagem,
+            msg: { id }
+          };
+        } else {
+          return {
+            status: dados.status,
+            mensagem: dados.mensagem
+          };
+        }
+      } else {
         return {
-            status: false,
-            mensagem: "Não foi possível excluir mensagem " + erro.message
+          status: false,
+          mensagem: "Não é possível excluir mensagens com mais de 5 minutos."
         };
+      }
+    } catch (erro) {
+      return {
+        status: false,
+        mensagem: "Não foi possível excluir mensagem " + erro.message
+      };
     }
-});
+  });
 
 
 const estadoInicial = {
